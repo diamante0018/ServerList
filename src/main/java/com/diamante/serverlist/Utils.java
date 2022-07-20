@@ -16,6 +16,10 @@
  */
 package com.diamante.serverlist;
 
+import java.net.InetAddress;
+
+import java.net.UnknownHostException;
+
 import java.nio.BufferOverflowException;
 import java.nio.ReadOnlyBufferException;
 
@@ -48,7 +52,7 @@ public class Utils {
     }
 
     /**
-     * Flips the array of in around
+     * Flips the array around
      *
      * @param in array of in. Length must be multiple of 4
      */
@@ -113,7 +117,7 @@ public class Utils {
             return buffer.getShort(0);
         }
         catch (BufferOverflowException | ReadOnlyBufferException ex) {
-            System.err.println("longSwap: BufferOverflowException or ReadOnlyBufferException");
+            System.err.println("shortSwap: BufferOverflowException or ReadOnlyBufferException");
             return -1;
         }
     }
@@ -128,5 +132,20 @@ public class Utils {
         buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         buffer.putShort(in);
         return buffer.array();
+    }
+
+    public static Server stringToServer(String in) {
+        try {
+            var parts = in.split(":");
+
+            if (parts.length < 2) {
+                return null;
+            }
+
+            return new Server(InetAddress.getByName(parts[0]), Short.parseShort(parts[1]));
+        }
+        catch (UnknownHostException ex) {
+            return null;
+        }
     }
 }

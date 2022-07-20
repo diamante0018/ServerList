@@ -101,6 +101,8 @@ public class MasterServer {
         } else {
             System.out.println("handlePacket: magic is not recognized");
         }
+        
+        serverList.dumpOnlineServers();
     }
 
     public void await() {

@@ -1,0 +1,51 @@
+/*
+ * Copyright (C) 2022 Diamante
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.diamante.serverlist;
+
+import java.nio.charset.StandardCharsets;
+
+/**
+ *
+ * @author Diamante
+ */
+public class InfoDumper {
+
+    public static void dumpServerResponse(byte[] data) {
+        assert data.length == ClientEmulator.SERVER_INFO_SIZE;
+
+        var magicLE = new byte[4];
+
+        var playersLE = new byte[4];
+        var maxPlayersLE = new byte[4];
+
+        var rawDataLE = new byte[2048];
+
+        System.arraycopy(data, 0, magicLE, 0, 4);
+        System.arraycopy(data, 8, playersLE, 0, 4);
+        System.arraycopy(data, 12, maxPlayersLE, 0, 4);
+
+        System.arraycopy(data, 81, rawDataLE, 0, 2048);
+
+        var playersBE = Utils.longSwap(playersLE);
+        var maxPlayersBE = Utils.longSwap(maxPlayersLE);
+
+        System.out.println(String.format("dumpServerResponse: Players %d:%d", playersBE, maxPlayersBE));
+
+        String infoString = new String(rawDataLE, StandardCharsets.UTF_8);
+        System.out.println(infoString);
+    }
+}

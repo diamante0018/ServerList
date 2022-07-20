@@ -79,7 +79,7 @@ public class ServerList {
     /**
      * The first 4 bytes will contain the numbers of servers we are going to
      * send in LE Then we have 4 bytes for the IP address in LE Finally 2 bytes
-     * for the net_port in LE Repeat for each server
+     * for the net_port in LE. Repeat for each server
      *
      * @param version the version of the client
      * @return the raw bytes to send to the client
@@ -117,7 +117,7 @@ public class ServerList {
                         builder.write(portLE);
                     }
                     catch (IOException ex) {
-                        System.err.println("createResponse: IOException while writing server data)");
+                        System.err.println("createResponse: IOException while writing server data");
                     }
                 }
             }
@@ -128,6 +128,23 @@ public class ServerList {
         byteBuffer.clear();
         byteBuffer.put(builder.toByteArray());
         byteBuffer.flip();
+
+        try {
+            builder.close();
+        }
+        catch (IOException ex) {
+            System.err.println("createResponse: IOException in builder.close()");
+        }
+
         return byteBuffer.array();
+    }
+
+    public void dumpOnlineServers() {
+        if (!Main.running.get()) {
+            return;
+        }
+
+        var thread = new Thread(new ClientEmulator(serverList));
+        thread.start();
     }
 }

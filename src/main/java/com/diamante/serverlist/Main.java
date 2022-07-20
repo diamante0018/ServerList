@@ -18,22 +18,65 @@ package com.diamante.serverlist;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+
+import org.apache.commons.cli.ParseException;
+
 /**
  *
  * @author Diamante
  */
 public class Main {
 
+    private enum Mode {
+        Emulator, Master, Bad;
+    }
+
+    private Mode mode;
+
     public static final AtomicBoolean running = new AtomicBoolean(true);
 
-    private final MasterServer server;
+    private MasterServer server;
 
     public Main() {
-        server = new MasterServer();
+        mode = Mode.Bad;
+    }
+
+    private Mode getMode() {
+        return mode;
+    }
+
+    private void setMode(Mode mode) {
+        this.mode = mode;
     }
 
     public MasterServer getServer() {
         return server;
+    }
+
+    private void createMasterServer() {
+        server = new MasterServer();
+    }
+
+    private Options createOptions() {
+        var options = new Options();
+
+        var master = new Option("master", "master server mode");
+        var emulator = new Option("emulator", "client emulator mode");
+
+        var ping = Option.builder("ping")
+                .argName("IP:Port")
+                .hasArg()
+                .desc("Server to ping")
+                .build();
+
+        options.addOption(master);
+        options.addOption(emulator);
+        options.addOption(ping);
+
+        return options;
     }
 
     public static void main(String[] args) {
@@ -46,11 +89,37 @@ public class Main {
         });
 
         var main = new Main();
+        var options = main.createOptions();
+        var ip = new String();
 
-        while (running.get() && main.getServer().isValid()) {
-            main.getServer().await();
+        var parser = new DefaultParser();
+        try {
+            var line = parser.parse(options, args);
+            if (line.hasOption("master")) {
+                main.setMode(Mode.Master);
+            } else if (line.hasOption("emulator")) {
+                main.setMode(Mode.Emulator);
+            }
+
+            if (line.hasOption("ping")) {
+                ip = line.getOptionValue("ping");
+            }
+        }
+        catch (ParseException exp) {
+            System.err.println("Parsing failed. Reason: " + exp.getMessage());
         }
 
-        main.getServer().stop();
+        if (main.getMode() == Mode.Master) {
+            main.createMasterServer();
+            while (running.get() && main.getServer().isValid()) {
+                main.getServer().await();
+            }
+            main.getServer().stop();
+        } else if (main.getMode() == Mode.Emulator) {
+            var emulator = new ClientEmulator();
+            emulator.pingSingleServer(ip);
+        }
+
+        System.out.println("Normal shutdown");
     }
 }

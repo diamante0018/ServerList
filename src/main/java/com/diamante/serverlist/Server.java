@@ -42,11 +42,18 @@ public class Server {
         this.time = System.currentTimeMillis() / 1000L;
     }
 
+    public Server(InetAddress address, Short netPort) {
+        this.address = address;
+        this.netPort = netPort;
+
+        this.time = System.currentTimeMillis() / 1000L;
+    }
+
     public InetAddress getAddress() {
         return address;
     }
-    
-    public short getNetPort(){
+
+    public short getNetPort() {
         return netPort;
     }
 
