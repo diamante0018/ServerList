@@ -37,8 +37,6 @@ public class MasterServer {
 
     private ServerSocket socket;
 
-    private boolean magicOverride;
-
     private boolean valid;
 
     private final ServerList serverList;
@@ -74,10 +72,6 @@ public class MasterServer {
             System.out.println("handlePacket: magic is of type client");
 
             serverList.removeInactive();
-
-            if (this.magicOverride) {
-                versionBE = 0; // Handled in serverList.createResponse
-            }
 
             var toSend = serverList.createResponse(versionBE);
 
@@ -162,10 +156,6 @@ public class MasterServer {
         } catch (IOException ex) {
             System.err.println("await: IOException while cleaning up");
         }
-    }
-
-    public void setMagicOverride(boolean magicOverride) {
-        this.magicOverride = magicOverride;
     }
 
     public void stop() {

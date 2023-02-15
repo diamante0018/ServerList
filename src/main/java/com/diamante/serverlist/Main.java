@@ -118,7 +118,6 @@ public class Main {
 
         if (main.getMode() == Mode.Master) {
             main.createMasterServer();
-            main.getServer().setMagicOverride(magicOverride);
             System.out.println("Master Server startup");
             while (running.get() && main.getServer().isValid()) {
                 main.getServer().await();
