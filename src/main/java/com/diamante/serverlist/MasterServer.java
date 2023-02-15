@@ -37,6 +37,8 @@ public class MasterServer {
 
     private ServerSocket socket;
 
+    private boolean magicOverride;
+
     private boolean valid;
 
     private final ServerList serverList;
@@ -68,7 +70,27 @@ public class MasterServer {
         var versionLE = Arrays.copyOfRange(blob, 4, 8);
         var versionBE = Utils.longSwap(versionLE);
 
-        if (Utils.isServerMagic(magicBE)) {
+        if (Utils.isClientMagic(magicBE)) {
+            System.out.println("handlePacket: magic is of type client");
+
+            serverList.removeInactive();
+
+            if (this.magicOverride) {
+                versionBE = 0; // Handled in serverList.createResponse
+            }
+
+            var toSend = serverList.createResponse(versionBE);
+
+            try {
+                var out = new DataOutputStream(from.getOutputStream());
+                out.write(toSend);
+
+                // Clean things up
+                out.close();
+            } catch (IOException ex) {
+                System.err.println("handlePacket: IOException in DataOutputStream(from.getOutputStream())");
+            }
+        } else if (Utils.isServerMagic(magicBE)) {
             System.out.println("handlePacket: magic is of type server");
 
             if (packetData.size() < 10) {
@@ -82,26 +104,10 @@ public class MasterServer {
 
             var server = new Server(from.getInetAddress(), portBE, versionBE);
             serverList.addServer(server);
-
-        } else if (Utils.isClientMagic(magicBE)) {
-            System.out.println("handlePacket: magic is of type client");
-
-            serverList.removeInactive();
-            var toSend = serverList.createResponse(versionBE);
-
-            try {
-                var out = new DataOutputStream(from.getOutputStream());
-                out.write(toSend);
-
-                // Clean things up
-                out.close();
-            } catch (IOException ex) {
-                System.err.println("handlePacket: IOException in DataOutputStream(from.getOutputStream())");
-            }
         } else {
             System.out.println("handlePacket: magic is not recognized");
         }
-        
+
         serverList.dumpOnlineServers();
     }
 
@@ -156,6 +162,10 @@ public class MasterServer {
         } catch (IOException ex) {
             System.err.println("await: IOException while cleaning up");
         }
+    }
+
+    public void setMagicOverride(boolean magicOverride) {
+        this.magicOverride = magicOverride;
     }
 
     public void stop() {

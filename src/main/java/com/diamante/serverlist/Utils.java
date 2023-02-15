@@ -38,17 +38,19 @@ public class Utils {
     public static final int PACKET_SERVERT_LEN = 10;
 
     // (Warning: Remember to take into account endianness)
-    // 'HELP'
-    public static final int SERVER_MAGIC = 1212501072;
-    // 'THEM'
-    public static final int CLIENT_MAGIC = 1414022477;
+    // 2023 Update: They magic was changed, client and server were switched (HELP & THEM)
+    public static final int OLD_SERVER_MAGIC = 1212501072;
+    public static final int NEW_SERVER_MAGIC = 1414022477;
+
+    public static final int OLD_CLIENT_MAGIC = 1414022477;
+    public static final int NEW_CLIENT_MAGIC = 1212501072;
 
     public static boolean isServerMagic(int magic) {
-        return magic == SERVER_MAGIC;
+        return magic == OLD_SERVER_MAGIC;
     }
 
     public static boolean isClientMagic(int magic) {
-        return magic == CLIENT_MAGIC;
+        return magic == OLD_CLIENT_MAGIC;
     }
 
     /**

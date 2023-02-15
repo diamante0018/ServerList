@@ -65,6 +65,7 @@ public class Main {
 
         var master = new Option("master", "master server mode");
         var emulator = new Option("emulator", "client emulator mode");
+        var magicOverride = new Option("magic_override", "master server will send all servers to the client");
 
         var ping = Option.builder("ping")
                 .argName("IP:Port")
@@ -74,6 +75,7 @@ public class Main {
 
         options.addOption(master);
         options.addOption(emulator);
+        options.addOption(magicOverride);
         options.addOption(ping);
 
         return options;
@@ -90,6 +92,7 @@ public class Main {
 
         var main = new Main();
         var options = main.createOptions();
+        var magicOverride = false;
         var ip = new String();
 
         var parser = new DefaultParser();
@@ -99,6 +102,10 @@ public class Main {
                 main.setMode(Mode.Master);
             } else if (line.hasOption("emulator")) {
                 main.setMode(Mode.Emulator);
+            }
+
+            if (line.hasOption("magic_override")) {
+                magicOverride = true;
             }
 
             if (line.hasOption("ping")) {
@@ -111,6 +118,8 @@ public class Main {
 
         if (main.getMode() == Mode.Master) {
             main.createMasterServer();
+            main.getServer().setMagicOverride(magicOverride);
+            System.out.println("Master Server startup");
             while (running.get() && main.getServer().isValid()) {
                 main.getServer().await();
             }

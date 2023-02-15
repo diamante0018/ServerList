@@ -103,7 +103,8 @@ public class ServerList {
             while (it.hasNext()) {
                 var server = it.next();
                 // Let's make sure we send the client only servers on the same version
-                if (server.getVersion() == version) {
+                // 2023 Update: They changed the magic so add option to disable this check
+                if (server.getVersion() == version || version == 0) {
                     try {
                         // Let's flip the bytes of this one too
                         var ipBE = server.getAddress().getAddress();
