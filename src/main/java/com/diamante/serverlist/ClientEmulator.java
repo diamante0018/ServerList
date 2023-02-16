@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Diamante
+ * Copyright (C) 2023 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ public class ClientEmulator implements Runnable {
         }
 
         var rawData = response.getData();
-        InfoDumper.dumpServerResponse(rawData);
+        InfoDumper.dumpServerResponse(server, rawData);
     }
 
     @Override

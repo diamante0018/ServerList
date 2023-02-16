@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Diamante
+ * Copyright (C) 2023 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,13 @@
  */
 package com.diamante.serverlist;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import java.nio.charset.StandardCharsets;
+
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -24,7 +30,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class InfoDumper {
 
-    public static void dumpServerResponse(byte[] data) {
+    public static void dumpServerResponse(Server server, byte[] data) {
         assert data.length == ClientEmulator.SERVER_INFO_SIZE;
 
         var magicLE = new byte[4];
@@ -47,5 +53,27 @@ public class InfoDumper {
 
         String infoString = new String(rawDataLE, StandardCharsets.UTF_8);
         System.out.println(infoString);
+
+        // Save to JSON for easier inspection
+        var magicBE = Utils.longSwap(magicLE);
+
+        var obj = new JSONObject();
+        obj.put("server", server.toString());
+        obj.put("magic", magicBE);
+        obj.put("players", playersBE);
+        obj.put("sv_maxClients", maxPlayersBE);
+        
+        saveJSONFile(String.format("dump\\stats_%d", server.hashCode()), obj);
+    }
+
+    public static void saveJSONFile(String fileName, JSONObject obj) {
+        try {
+            var writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(obj.toJSONString());
+            writer.close();
+        }
+        catch (IOException ex) {
+            System.err.println("saveJSONFile: IOException while writing a JSON file");
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Diamante
+ * Copyright (C) 2023 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import org.apache.commons.cli.ParseException;
 public class Main {
 
     private enum Mode {
-        Emulator, Master, Bad;
+        Emulator, Master, MasterPing, Bad;
     }
 
     private Mode mode;
@@ -65,7 +65,7 @@ public class Main {
 
         var master = new Option("master", "master server mode");
         var emulator = new Option("emulator", "client emulator mode");
-        var magicOverride = new Option("magic_override", "master server will send all servers to the client");
+        var masterPing = new Option("master_ping", "ping the master server");
 
         var ping = Option.builder("ping")
                 .argName("IP:Port")
@@ -75,7 +75,7 @@ public class Main {
 
         options.addOption(master);
         options.addOption(emulator);
-        options.addOption(magicOverride);
+        options.addOption(masterPing);
         options.addOption(ping);
 
         return options;
@@ -92,7 +92,6 @@ public class Main {
 
         var main = new Main();
         var options = main.createOptions();
-        var magicOverride = false;
         var ip = new String();
 
         var parser = new DefaultParser();
@@ -102,10 +101,8 @@ public class Main {
                 main.setMode(Mode.Master);
             } else if (line.hasOption("emulator")) {
                 main.setMode(Mode.Emulator);
-            }
-
-            if (line.hasOption("magic_override")) {
-                magicOverride = true;
+            } else if (line.hasOption("master_ping")) {
+                main.setMode(Mode.MasterPing);
             }
 
             if (line.hasOption("ping")) {
@@ -126,6 +123,10 @@ public class Main {
         } else if (main.getMode() == Mode.Emulator) {
             var emulator = new ClientEmulator();
             emulator.pingSingleServer(ip);
+        } else if (main.getMode() == Mode.MasterPing) {
+            var ping = new MasterServerPinger();
+            ping.pingMaster();
+            ping.readReplyFromMaster();
         }
 
         System.out.println("Normal shutdown");
