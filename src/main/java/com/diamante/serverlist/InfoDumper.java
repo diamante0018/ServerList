@@ -63,7 +63,7 @@ public class InfoDumper {
         obj.put("players", playersBE);
         obj.put("sv_maxClients", maxPlayersBE);
         
-        saveJSONFile(String.format("dump\\stats_%d", server.hashCode()), obj);
+        saveJSONFile(String.format("stats_%d.json", Math.abs(server.hashCode())), obj);
     }
 
     public static void saveJSONFile(String fileName, JSONObject obj) {
