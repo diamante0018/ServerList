@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Diamante
+ * Copyright (C) 2025 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,16 +29,15 @@ import java.net.UnknownHostException;
  */
 public class MasterServerPinger {
 
-    private static final String MASTER = "mw3.totalkillaz.ovh";
+    private static final String OFFICIAL_MASTER = "mw3.totalkillaz.ovh";
+    private static final String LAN_MASTER = "127.0.0.1";
     private static final int MASTER_PORT = 27017;
-
-    private static final int CLIENT_VERSION = 17039893;
 
     private Socket clientSocket;
 
     public void pingMaster() {
         try {
-            clientSocket = new Socket(MASTER, MASTER_PORT);
+            clientSocket = new Socket(OFFICIAL_MASTER, MASTER_PORT);
         }
         catch (IOException ex) {
             System.err.println("IOException: Failed to open a socket");
@@ -50,7 +49,7 @@ public class MasterServerPinger {
             var data = new byte[8];
 
             var magicLE = Utils.longSwap(Utils.NEW_CLIENT_MAGIC);
-            var versionLE = Utils.longSwap(CLIENT_VERSION);
+            var versionLE = Utils.longSwap(Utils.CLIENT_VERSION);
 
             System.arraycopy(magicLE, 0, data, 0, 4);
             System.arraycopy(versionLE, 0, data, 4, 4);
@@ -66,16 +65,31 @@ public class MasterServerPinger {
         var out = new ByteArrayOutputStream();
 
         try {
+            System.out.println("readReplyFromMaster: awaiting reply from master server");
             var input = clientSocket.getInputStream();
+            System.out.println("readReplyFromMaster: finished waiting for a reply from master server");
             var bytes = new byte[0x1000 * 0x6 + 0x4];
 
-            int count;
-            while ((count = input.read(bytes)) > 0) {
-                out.write(bytes, 0, count);
-            }
+            int count = input.read(bytes);
+            out.write(bytes, 0, count);
+            
+            System.out.println("readReplyFromMaster: finished reading bytes from socket");
         }
         catch (IOException ex) {
             System.err.println("IOException: Failed to read from a socket");
+        }
+
+        if (out.size() == 0) {
+            System.out.println("readReplyFromMaster: got no reply");
+
+            try {
+                out.close();
+            }
+            catch (IOException ex) {
+                System.err.println("readReplyFromMaster: IOException in out.close()");
+            }
+
+            return;
         }
 
         var bytes = out.toByteArray();

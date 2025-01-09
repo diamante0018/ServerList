@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Diamante
+ * Copyright (C) 2025 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import org.apache.commons.cli.ParseException;
 public class Main {
 
     private enum Mode {
-        Emulator, Master, MasterPing, Bad;
+        Emulator, Master, MasterPing, ServerPing, Bad;
     }
 
     private Mode mode;
@@ -66,6 +66,7 @@ public class Main {
         var master = new Option("master", "master server mode");
         var emulator = new Option("emulator", "client emulator mode");
         var masterPing = new Option("master_ping", "ping the master server");
+        var serverPing = new Option("server_ping", "ping the master server as a server");
 
         var ping = Option.builder("ping")
                 .argName("IP:Port")
@@ -76,6 +77,7 @@ public class Main {
         options.addOption(master);
         options.addOption(emulator);
         options.addOption(masterPing);
+        options.addOption(serverPing);
         options.addOption(ping);
 
         return options;
@@ -103,6 +105,8 @@ public class Main {
                 main.setMode(Mode.Emulator);
             } else if (line.hasOption("master_ping")) {
                 main.setMode(Mode.MasterPing);
+            } else if (line.hasOption("server_ping")) {
+                main.setMode(Mode.ServerPing);
             }
 
             if (line.hasOption("ping")) {
@@ -127,6 +131,9 @@ public class Main {
             var ping = new MasterServerPinger();
             ping.pingMaster();
             ping.readReplyFromMaster();
+        } else if (main.getMode() == Mode.ServerPing) {
+             var ping = new ServerEmulator();
+             ping.pingLoop();
         }
 
         System.out.println("Normal shutdown");
