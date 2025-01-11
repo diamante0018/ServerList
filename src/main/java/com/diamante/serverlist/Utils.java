@@ -16,14 +16,18 @@
  */
 package com.diamante.serverlist;
 
-import java.net.InetAddress;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.nio.BufferOverflowException;
 import java.nio.ReadOnlyBufferException;
-
 import java.nio.ByteBuffer;
+
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -43,7 +47,7 @@ public class Utils {
 
     public static final int OLD_CLIENT_MAGIC = 1414022477; // THEM
     public static final int NEW_CLIENT_MAGIC = 1129268293;
-    
+
     public static final int CLIENT_VERSION = 17039893;
 
     public static boolean isServerMagic(int magic) {
@@ -149,6 +153,29 @@ public class Utils {
         }
         catch (UnknownHostException ex) {
             return null;
+        }
+    }
+
+    public static String bytesToIP(int in) {
+        String ipAddress = String.format(
+                "%d.%d.%d.%d",
+                (in & 0xff),
+                (in >> 8 & 0xff),
+                (in >> 16 & 0xff),
+                (in >> 24 & 0xff)
+        );
+
+        return ipAddress;
+    }
+
+    public static void saveJSONFile(String fileName, JSONObject obj) {
+        try {
+            var writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(obj.toJSONString());
+            writer.close();
+        }
+        catch (IOException ex) {
+            System.err.println("saveJSONFile: IOException while writing a JSON file");
         }
     }
 }

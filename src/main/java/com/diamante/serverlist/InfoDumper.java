@@ -62,18 +62,8 @@ public class InfoDumper {
         obj.put("magic", magicBE);
         obj.put("players", playersBE);
         obj.put("sv_maxClients", maxPlayersBE);
+        obj.put("info", infoString);
         
-        saveJSONFile(String.format("stats_%d.json", Math.abs(server.hashCode())), obj);
-    }
-
-    public static void saveJSONFile(String fileName, JSONObject obj) {
-        try {
-            var writer = new BufferedWriter(new FileWriter(fileName));
-            writer.write(obj.toJSONString());
-            writer.close();
-        }
-        catch (IOException ex) {
-            System.err.println("saveJSONFile: IOException while writing a JSON file");
-        }
+        Utils.saveJSONFile(String.format("stats_%d.json", Math.abs(server.hashCode())), obj);
     }
 }

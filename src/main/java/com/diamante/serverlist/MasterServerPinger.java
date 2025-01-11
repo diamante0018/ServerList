@@ -23,6 +23,9 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 /**
  *
  * @author Diamante
@@ -72,7 +75,7 @@ public class MasterServerPinger {
 
             int count = input.read(bytes);
             out.write(bytes, 0, count);
-            
+
             System.out.println("readReplyFromMaster: finished reading bytes from socket");
         }
         catch (IOException ex) {
@@ -101,6 +104,40 @@ public class MasterServerPinger {
         var serverCountBE = Utils.longSwap(serverCountLE);
 
         System.out.println(String.format("readReplyFromMaster: got %d servers", serverCountBE));
+
+        var root = new JSONObject();
+        var serverArray = new JSONArray();
+
+        // Process server data
+        for (int i = 4; i < bytes.length; i += 6) {
+            if (i + 6 > bytes.length) {
+                System.err.println("readReplyFromMaster: Incomplete server data detected");
+                break;
+            }
+
+            byte[] ipBytesLE = new byte[4];
+            System.arraycopy(bytes, i, ipBytesLE, 0, 4);
+            var ipBytesBE = Utils.longSwap(ipBytesLE);
+
+            var ipAddress = Utils.bytesToIP(ipBytesBE);
+
+            var portBytesLE = new byte[2];
+            System.arraycopy(bytes, i + 4, portBytesLE, 0, 2);
+            var port = ((portBytesLE[1] & 0xFF) << 8) | (portBytesLE[0] & 0xFF);
+
+            System.out.println(String.format("Server: %s:%d", ipAddress, port));
+
+            var serverObject = new JSONObject();
+            serverObject.put("IP", ipAddress);
+            serverObject.put("port", port);
+
+            serverArray.add(serverObject);
+        }
+
+        root.put("totalServers", serverCountBE);
+        root.put("servers", serverArray);
+
+        Utils.saveJSONFile(String.format("server_dump_%d.json", System.currentTimeMillis() / 1000L), root);
 
         try {
             out.close();

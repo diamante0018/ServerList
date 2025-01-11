@@ -105,6 +105,7 @@ public class Server {
         hash = 71 * hash + Objects.hashCode(this.address);
         hash = 71 * hash + Objects.hashCode(this.netPort);
         hash = 71 * hash + Objects.hashCode(this.version);
+        hash = 71 * hash + Objects.hashCode(this.time);
         return hash;
     }
 
