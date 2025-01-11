@@ -117,13 +117,13 @@ public class MasterServerPinger {
 
             byte[] ipBytesLE = new byte[4];
             System.arraycopy(bytes, i, ipBytesLE, 0, 4);
-            var ipBytesBE = Utils.longSwap(ipBytesLE);
+            var ipBytesBE = Utils.bytesToInt(ipBytesLE);
 
             var ipAddress = Utils.bytesToIP(ipBytesBE);
 
             var portBytesLE = new byte[2];
             System.arraycopy(bytes, i + 4, portBytesLE, 0, 2);
-            var port = ((portBytesLE[1] & 0xFF) << 8) | (portBytesLE[0] & 0xFF);
+            var port = Utils.shortSwap(portBytesLE);
 
             System.out.println(String.format("Server: %s:%d", ipAddress, port));
 
