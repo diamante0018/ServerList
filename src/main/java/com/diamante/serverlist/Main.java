@@ -67,6 +67,7 @@ public class Main {
         var emulator = new Option("emulator", "client emulator mode");
         var masterPing = new Option("master_ping", "ping the master server");
         var serverPing = new Option("server_ping", "ping the master server as a server");
+        var dumpReplyFromMaster = new Option("dump_reply", "dump info from all the servers listed on the master");
 
         var ping = Option.builder("ping")
                 .argName("IP:Port")
@@ -74,11 +75,19 @@ public class Main {
                 .desc("Server to ping")
                 .build();
 
+        var fileList = Option.builder("file_list")
+                .argName("<filename>")
+                .hasArg()
+                .desc("Servers to ping")
+                .build();
+
         options.addOption(master);
         options.addOption(emulator);
         options.addOption(masterPing);
         options.addOption(serverPing);
+        options.addOption(dumpReplyFromMaster);
         options.addOption(ping);
+        options.addOption(fileList);
 
         return options;
     }
@@ -95,6 +104,8 @@ public class Main {
         var main = new Main();
         var options = main.createOptions();
         var ip = new String();
+        var fileList = new String();
+        boolean dumpReply = false;
 
         var parser = new DefaultParser();
         try {
@@ -109,12 +120,21 @@ public class Main {
                 main.setMode(Mode.ServerPing);
             }
 
+            if (line.hasOption("dump_reply")) {
+                dumpReply = true;
+            }
+
             if (line.hasOption("ping")) {
                 ip = line.getOptionValue("ping");
+            }
+
+            if (line.hasOption("file_list")) {
+                fileList = line.getOptionValue("file_list");
             }
         }
         catch (ParseException exp) {
             System.err.println("Parsing failed. Reason: " + exp.getMessage());
+            return;
         }
 
         if (main.getMode() == Mode.Master) {
@@ -125,15 +145,22 @@ public class Main {
             }
             main.getServer().stop();
         } else if (main.getMode() == Mode.Emulator) {
-            var emulator = new ClientEmulator();
-            emulator.pingSingleServer(ip);
+            if (!fileList.isEmpty()) {
+                var emulator = new ClientEmulator();
+                emulator.pingServers(fileList);
+            }
+
+            if (!ip.isEmpty()) {
+                var emulator = new ClientEmulator();
+                emulator.pingSingleServer(ip);
+            }
         } else if (main.getMode() == Mode.MasterPing) {
             var ping = new MasterServerPinger();
             ping.pingMaster();
-            ping.readReplyFromMaster();
+            ping.readReplyFromMaster(dumpReply);
         } else if (main.getMode() == Mode.ServerPing) {
-             var ping = new ServerEmulator();
-             ping.pingLoop();
+            var ping = new ServerEmulator();
+            ping.pingLoop();
         }
 
         System.out.println("Normal shutdown");

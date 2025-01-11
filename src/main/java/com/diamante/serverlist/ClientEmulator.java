@@ -21,12 +21,18 @@ import java.lang.management.ManagementFactory;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.channels.IllegalBlockingModeException;
 
 import java.util.Set;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * The purpose of this module is to ping the servers on the server list.
@@ -74,6 +80,34 @@ public class ClientEmulator implements Runnable {
         var to = Utils.stringToServer(ip);
         if (to != null) {
             handleServer(to);
+        }
+    }
+
+    public void pingServers(String filePath) {
+        try {
+            var parser = new JSONParser();
+            var root = (JSONObject) parser.parse(new FileReader(filePath));
+
+            var serversToParse = (JSONArray) root.get("servers");
+
+            for (Object obj : serversToParse) {
+                var server = (JSONObject) obj;
+
+                var ip = (String) server.get("IP");
+                var port = (long) server.get("port"); // Port is stored as a number
+
+                System.out.println(ip + ":" + port);
+                var to = Utils.stringToServer(ip + ":" + port);
+                if (to != null) {
+                    handleServer(to);
+                }
+            }
+        }
+        catch (IOException e) {
+            System.err.println("Error reading the file: " + e.getMessage());
+        }
+        catch (ParseException e) {
+            System.err.println("Error parsing JSON: " + e.getMessage());
         }
     }
 

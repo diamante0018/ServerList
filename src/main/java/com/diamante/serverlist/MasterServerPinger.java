@@ -16,6 +16,10 @@
  */
 package com.diamante.serverlist;
 
+import java.util.Set;
+import java.util.Collections;
+import java.util.HashSet;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -64,7 +68,7 @@ public class MasterServerPinger {
         }
     }
 
-    public void readReplyFromMaster() {
+    public void readReplyFromMaster(Boolean dump) {
         var out = new ByteArrayOutputStream();
 
         try {
@@ -108,6 +112,8 @@ public class MasterServerPinger {
         var root = new JSONObject();
         var serverArray = new JSONArray();
 
+        Set<Server> serverList = Collections.synchronizedSet(new HashSet<>());
+
         // Process server data
         for (int i = 4; i < bytes.length; i += 6) {
             if (i + 6 > bytes.length) {
@@ -127,6 +133,13 @@ public class MasterServerPinger {
 
             System.out.println(String.format("Server: %s:%d", ipAddress, port));
 
+            if (!dump) {
+                continue;
+            }
+
+            var server = Utils.stringToServer(ipAddress + ":" + port);
+            serverList.add(server);
+
             var serverObject = new JSONObject();
             serverObject.put("IP", ipAddress);
             serverObject.put("port", port);
@@ -134,10 +147,15 @@ public class MasterServerPinger {
             serverArray.add(serverObject);
         }
 
-        root.put("totalServers", serverCountBE);
-        root.put("servers", serverArray);
+        if (dump) {
+            var thread = new Thread(new ClientEmulator(serverList));
+            thread.start();
 
-        Utils.saveJSONFile(String.format("server_dump_%d.json", System.currentTimeMillis() / 1000L), root);
+            root.put("totalServers", serverCountBE);
+            root.put("servers", serverArray);
+
+            Utils.saveJSONFile(String.format("server_dump_%d.json", System.currentTimeMillis() / 1000L), root);
+        }
 
         try {
             out.close();
