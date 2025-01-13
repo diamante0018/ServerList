@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Diamante
+ * Copyright (C) 2025 Diamante
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,14 +48,14 @@ public class Utils {
     public static final int OLD_CLIENT_MAGIC = 1414022477; // THEM
     public static final int NEW_CLIENT_MAGIC = 1129268293;
 
-    public static final int CLIENT_VERSION = 17039893;
+    public static final int CLIENT_VERSION = 17039893; // CODE
 
     public static boolean isServerMagic(int magic) {
         return magic == OLD_SERVER_MAGIC;
     }
 
     public static boolean isClientMagic(int magic) {
-        return magic == OLD_CLIENT_MAGIC;
+        return magic == NEW_CLIENT_MAGIC;
     }
 
     public static int bytesToInt(byte[] bytes) {
